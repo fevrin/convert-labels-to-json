@@ -87,7 +87,7 @@ def convert_to_json(data):
 
     result = []
     special_chars = ['\'','"','\\','=','\n']
-    parent_list = []
+    error_list = []
     key_values = {}
     error_summary = ""
     for line in lines:
@@ -160,11 +160,11 @@ def convert_to_json(data):
                     print(f"appending '{char}' to value")
                     word.append(char)
 
-        parent_list.append(key_values)
+        error_list.append(key_values)
         key_values = {}
 
-    parent_list.append({"error summary": error_summary})
-    print(f"key_values = '{json.dumps(parent_list, indent=4)}'")
+    error_list.append({"error summary": error_summary})
+    print(f"error_list = '{json.dumps(error_list, indent=4)}'")
 
 if __name__ == "__main__":
     # Get filename from command line argument (optional)
