@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import json
+import logging
 import re
 import sys
 from collections import deque
@@ -109,9 +110,9 @@ def convert_to_json(data):
         for char in line:
 #            print(f"char = '{char}'")
             if skip_next_char is True:
-                print(f"skipping char '{char}'")
+                logging.info("skipping char '{0}'".format(char))
                 skip_next_char = False
-                print(f"skip_next_char = '{skip_next_char}'")
+                logging.info("skip_next_char = '{0}'".format(skip_next_char))
                 continue
 
 #            if char in special_chars:
@@ -123,27 +124,27 @@ def convert_to_json(data):
                 if char == '=':
                     key = ''.join(word)
                     word = []
-                    print(f"key = '{key}'")
+                    logging.info("key = '%s'", key)
                     continue
                 else:
-                    print(f"appending '{char}' to key")
+                    logging.debug("appending '%s' to key", char)
                     word.append(char)
             else:
                 if char in ['\'','"'] and not quote_char:
                     quote_char = char
                     in_quoted_value = True
-                    print(f"quote_char = {quote_char}")
-                    print(f"in_quoted_value = '{in_quoted_value}'")
+                    logging.debug("quote_char = %s", quote_char)
+                    logging.debug("in_quoted_value = '%s'", in_quoted_value)
                     continue
                 if (quote_char and char == quote_char and word[-1] != '\\') \
                    or (not quote_char and char == ' '):
                     value = ''.join(word)
-                    print(f"word[-1] = {word[-1]}")
-                    print(f"value = '{value}'")
+                    logging.info("word[-1] = %s", word[-1])
+                    logging.info("value = '%s'", value)
 
                     key_values[key] = value
-                    print(f"key_values[{key}] = {value}")
-                    print("found both key and value; moving to next pair")
+                    logging.info("key_values['{}'] = '{}'".format(key, value))
+                    logging.info("found both key and value; moving to next pair")
 
                     # reset variables in preparation for the next key-value pair
                     key, value = "", ""
@@ -154,19 +155,24 @@ def convert_to_json(data):
                     if char != ' ':
                         skip_next_char = True
 
-                    print(f"skip_next_char = '{skip_next_char}'")
-                    print()
+                    logging.debug("skip_next_char = '%s'", skip_next_char)
+                    logging.info("\n")
                 else:
-                    print(f"appending '{char}' to value")
+                    logging.debug("appending '%s' to value", char)
                     word.append(char)
 
         error_list.append(key_values)
         key_values = {}
 
+        logging.info("found all keys and values on line; moving to next line")
+        logging.info("\n\n")
+
     error_list.append({"error summary": error_summary})
     print(f"error_list = '{json.dumps(error_list, indent=4)}'")
 
 if __name__ == "__main__":
+    logging.basicConfig(stream=sys.stderr, level=logging.DEBUG, style='{')
+
     # Get filename from command line argument (optional)
     if len(sys.argv) > 1:
       data = sys.argv[1]
