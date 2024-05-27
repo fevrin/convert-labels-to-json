@@ -86,13 +86,16 @@ def convert_to_json(data):
 
     result = []
     special_chars = ['\'','"','\\','=','\n']
+    parent_list = []
     key_values = {}
     for line in lines:
+        line = line.strip()
         line_dict = {}
         current_key = None
         current_value = deque()  # Use deque for handling quoted values
         in_quoted_value = False
         skip_next_char = False
+        quote_char = None
 
         word = []
         key = ""
@@ -100,48 +103,61 @@ def convert_to_json(data):
         for char in line:
 #            print(f"char = '{char}'")
             if skip_next_char is True:
+                print(f"skipping char '{char}'")
                 skip_next_char = False
-                print(f"skip_next_char = '{skip_next_char}' ({char})")
+                print(f"skip_next_char = '{skip_next_char}'")
                 continue
-            if char in special_chars:
-                print(f"special char = '{char}'")
+
+#            if char in special_chars:
+#                print(f"special char = '{char}'")
 #                print(f"key = '{type(key)}'")
+
+
+            if key == "":
                 if char == '=':
-                    if key == "":
-                        key = ''.join(word)
-                        word = []
-                        print(f"key = '{key}'")
-                    else:
-                        value = ''.join(word)
-                        print(f"value = '{value}'")
-                if char == '"':
-                    if in_quoted_value == False:
-                        if word[:-1] != '\\':
-                            in_quoted_value = True
-                    else:
-                        if word[:-1] != '\\':
-                            # assign the current set of characters to value'
-                            value = ''.join(word)
-                            key_values[key] = value
-
-                            # reset variables in preparation for the next key-value pair
-                            key, value = "", ""
-                            in_quoted_value = False
-                            skip_next_char = True
-                            word = []
-                            print(f"skip_next_char = '{skip_next_char}'")
-
-                    print(f"in_quoted_value = '{in_quoted_value}'")
-            else:
-                if key == "":
+                    key = ''.join(word)
+                    word = []
+                    print(f"key = '{key}'")
+                    continue
+                else:
                     print(f"appending '{char}' to key")
                     word.append(char)
+            else:
+                if char in ['\'','"'] and not quote_char:
+                    quote_char = char
+                    in_quoted_value = True
+                    print(f"quote_char = {quote_char}")
+                    print(f"in_quoted_value = '{in_quoted_value}'")
+                    continue
+                if (quote_char and char == quote_char and word[-1] != '\\') \
+                   or (not quote_char and char == ' '):
+                    value = ''.join(word)
+                    print(f"word[-1] = {word[-1]}")
+                    print(f"value = '{value}'")
+
+                    key_values[key] = value
+                    print(f"key_values[{key}] = {value}")
+                    print("found both key and value; moving to next pair")
+
+                    # reset variables in preparation for the next key-value pair
+                    key, value = "", ""
+                    in_quoted_value = False
+                    quote_char = None
+                    word = []
+
+                    if char != ' ':
+                        skip_next_char = True
+
+                    print(f"skip_next_char = '{skip_next_char}'")
+                    print()
                 else:
                     print(f"appending '{char}' to value")
                     word.append(char)
 
-    print(f"key_values = '{json.dumps(key_values, indent=4)}'")
+        parent_list.append(key_values)
+        key_values = {}
 
+    print(f"key_values = '{json.dumps(parent_list, indent=4)}'")
 
 if __name__ == "__main__":
     # Get filename from command line argument (optional)
