@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import json
+import logging
+import re
 import sys
 from collections import deque
 
@@ -86,64 +88,95 @@ def convert_to_json(data):
 
     result = []
     special_chars = ['\'','"','\\','=','\n']
+    error_list = []
     key_values = {}
+    error_summary = ""
     for line in lines:
+        line = line.strip()
         line_dict = {}
         current_key = None
         current_value = deque()  # Use deque for handling quoted values
         in_quoted_value = False
         skip_next_char = False
+        quote_char = None
 
         word = []
         key = ""
         value = ""
+        if re.match("^[^:]+: error:", line):
+            error_summary = line
+            continue
+
         for char in line:
 #            print(f"char = '{char}'")
             if skip_next_char is True:
+                logging.info("skipping char '{0}'".format(char))
                 skip_next_char = False
-                print(f"skip_next_char = '{skip_next_char}' ({char})")
+                logging.info("skip_next_char = '{0}'".format(skip_next_char))
                 continue
-            if char in special_chars:
-                print(f"special char = '{char}'")
+
+#            if char in special_chars:
+#                print(f"special char = '{char}'")
 #                print(f"key = '{type(key)}'")
+
+
+            if key == "":
                 if char == '=':
-                    if key == "":
-                        key = ''.join(word)
-                        word = []
-                        print(f"key = '{key}'")
-                    else:
-                        value = ''.join(word)
-                        print(f"value = '{value}'")
-                if char == '"':
-                    if in_quoted_value == False:
-                        if word[:-1] != '\\':
-                            in_quoted_value = True
-                    else:
-                        if word[:-1] != '\\':
-                            # assign the current set of characters to value'
-                            value = ''.join(word)
-                            key_values[key] = value
-
-                            # reset variables in preparation for the next key-value pair
-                            key, value = "", ""
-                            in_quoted_value = False
-                            skip_next_char = True
-                            word = []
-                            print(f"skip_next_char = '{skip_next_char}'")
-
-                    print(f"in_quoted_value = '{in_quoted_value}'")
-            else:
-                if key == "":
-                    print(f"appending '{char}' to key")
-                    word.append(char)
+                    key = ''.join(word)
+                    word = []
+                    logging.info("key = '%s'", key)
+                    continue
                 else:
-                    print(f"appending '{char}' to value")
+                    logging.debug("appending '%s' to key", char)
+                    word.append(char)
+            else:
+                if char in ['\'','"'] and not quote_char:
+                    quote_char = char
+                    in_quoted_value = True
+                    logging.debug("quote_char = %s", quote_char)
+                    logging.debug("in_quoted_value = '%s'", in_quoted_value)
+                    continue
+                if (quote_char and char == quote_char and word[-1] != '\\') \
+                   or (not quote_char and char == ' '):
+                    value = ''.join(word)
+                    logging.info("word[-1] = %s", word[-1])
+                    logging.info("value = '%s'", value)
+
+                    key_values[key] = value
+                    logging.info("key_values['{}'] = '{}'".format(key, value))
+                    logging.info("found both key and value; moving to next pair")
+
+                    # reset variables in preparation for the next key-value pair
+                    key, value = "", ""
+                    in_quoted_value = False
+                    quote_char = None
+                    word = []
+
+                    if char != ' ':
+                        skip_next_char = True
+
+                    logging.debug("skip_next_char = '%s'", skip_next_char)
+                    logging.info("\n")
+                else:
+                    if word and word[-1] == '\\':
+                        # json.dumps will automatically escape escape characters
+                        # if we don't remove this, it will double up
+                        word.pop()
+                    logging.debug("appending '%s' to value", char)
                     word.append(char)
 
-    print(f"key_values = '{json.dumps(key_values, indent=4)}'")
+        error_list.append(key_values)
+        key_values = {}
 
+        logging.info("found all keys and values on line; moving to next line")
+        logging.info("\n\n")
+
+    error_list.append({"error summary": error_summary})
+    print(f"error_list = '{json.dumps(error_list, indent=4)}'")
 
 if __name__ == "__main__":
+    logging.basicConfig(stream=sys.stderr, level=logging.DEBUG, style='{')
+
     # Get filename from command line argument (optional)
     if len(sys.argv) > 1:
       data = sys.argv[1]
