@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import json
+import re
 import sys
 from collections import deque
 
@@ -88,6 +89,7 @@ def convert_to_json(data):
     special_chars = ['\'','"','\\','=','\n']
     parent_list = []
     key_values = {}
+    error_summary = ""
     for line in lines:
         line = line.strip()
         line_dict = {}
@@ -100,6 +102,10 @@ def convert_to_json(data):
         word = []
         key = ""
         value = ""
+        if re.match("^[^:]+: error:", line):
+            error_summary = line
+            continue
+
         for char in line:
 #            print(f"char = '{char}'")
             if skip_next_char is True:
@@ -157,6 +163,7 @@ def convert_to_json(data):
         parent_list.append(key_values)
         key_values = {}
 
+    parent_list.append({"error summary": error_summary})
     print(f"key_values = '{json.dumps(parent_list, indent=4)}'")
 
 if __name__ == "__main__":
