@@ -4,7 +4,6 @@ import json
 import logging
 import re
 import sys
-from collections import deque
 
 
 def convert_to_json(data):
@@ -18,16 +17,11 @@ def convert_to_json(data):
         A JSON string representing the converted data.
     """
 
-    result = []
-    special_chars = ["'", '"', "\\", "=", "\n"]
     error_list = []
     key_values = {}
     error_summary = ""
     for line in lines:
         line = line.strip()
-        line_dict = {}
-        current_key = None
-        current_value = deque()  # Use deque for handling quoted values
         in_quoted_value = False
         skip_next_char = False
         quote_char = None
@@ -40,17 +34,11 @@ def convert_to_json(data):
             continue
 
         for char in line:
-#            print(f"char = '{char}'")
             if skip_next_char is True:
                 logging.info("skipping char '{0}'".format(char))
                 skip_next_char = False
                 logging.info("skip_next_char = '{0}'".format(skip_next_char))
                 continue
-
-#            if char in special_chars:
-#                print(f"special char = '{char}'")
-#                print(f"key = '{type(key)}'")
-
 
             if key == "":
                 if char == "=":
@@ -108,6 +96,7 @@ def convert_to_json(data):
 
     error_list.append({"error summary": error_summary})
     return error_list
+
 
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stderr, level=logging.CRITICAL, style="{")

@@ -1,29 +1,30 @@
+---
 # Rule name: HttpRequestStatusCodeDistribution
 groups:
   - name: examples
     rules:
-    - alert: HighCPUUsage
-      expr: node_cpu_usage{job="server"}[5m]
-      for: 5m
-      labels:
-        severity: critical
-        test: |
-          {{- range $key, $value := .Values.ingress.annotations }}
-            {{ $key }}: {{ $value }}
-          {{- end }}
-      annotations:
-        summary: High CPU Usage Detected!
-        description: Average CPU usage across all servers is above 80% for the past 5 minutes.
+      - alert: HighCPUUsage
+        expr: node_cpu_usage{job="server"}[5m]
+        for: 5m
+        labels:
+          severity: critical
+          test: |
+            {{- range $key, $value := .Values.ingress.annotations }}
+              {{ $key }}: {{ $value }}
+            {{- end }}
+        annotations:
+          summary: High CPU Usage Detected!
+          description: Average CPU usage across all servers is above 80% for the past 5 minutes.
 
-    - alert: HighCPUUsage
-      expr: node_cpu_usage{job="server"}[5m]
-      for: 5m
-      labels:
-        severity: critical
-        test: |
-          {{- range $key, $value := .Values.ingress.annotations }}
-            {{ $key }}: {{ $value }}
-          {{- end }}
-      annotations:
-        summary: High CPU Usage Detected!
-        description: Average CPU usage across all servers is above 80% for the past 5 minutes.
+      - alert: HighCPUUsage
+        expr: node_cpu_usage{job="server"}[5m]
+        for: 5m
+        labels:
+          severity: critical
+          test: |
+            {{- range $key, $value := .Values.ingress.annotations }}
+              {{ $key }}: {{ $value }}
+            {{- end }}
+        annotations:
+          summary: High CPU Usage Detected!
+          description: Average CPU usage across all servers is above 80% for the past 5 minutes.
