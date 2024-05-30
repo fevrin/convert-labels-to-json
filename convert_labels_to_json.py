@@ -171,7 +171,7 @@ def convert_to_json(data):
     return error_list
 
 if __name__ == "__main__":
-    logging.basicConfig(stream=sys.stderr, level=logging.DEBUG, style='{')
+    logging.basicConfig(stream=sys.stderr, level=logging.CRITICAL, style='{')
 
     # Get filename from command line argument (optional)
     if len(sys.argv) > 1:
