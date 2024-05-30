@@ -168,7 +168,7 @@ def convert_to_json(data):
         logging.info("\n\n")
 
     error_list.append({"error summary": error_summary})
-    print(f"error_list = '{json.dumps(error_list, indent=4)}'")
+    return error_list
 
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stderr, level=logging.DEBUG, style='{')
@@ -184,4 +184,5 @@ if __name__ == "__main__":
     json_data = convert_to_json(data)
 
     # Print the JSON string
-    print(json_data)
+    logging.debug("error_list = '%s'", json.dumps(json_data, indent=4))
+    print(json.dumps(json_data, indent=4))
