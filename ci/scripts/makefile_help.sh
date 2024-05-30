@@ -15,6 +15,7 @@ IFS=$'\n'
 
 # initial processing to retrieve the sections
 for section in ${CONTENT}; do
+   # shellcheck disable=SC2206
    sections+=(${section%%$'\1'*})
 done
 IFS="${OIFS}"
