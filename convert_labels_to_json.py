@@ -158,10 +158,12 @@ def convert_to_json(data):
                     logging.debug("skip_next_char = '%s'", skip_next_char)
                     logging.info("\n")
                 else:
-                    if word and word[-1] == '\\':
-                        # json.dumps will automatically escape escape characters
-                        # if we don't remove this, it will double up
-                        word.pop()
+                    #if word and word[-1] == '\\':
+                    #    # json.dumps will automatically escape escape characters
+                    #    # if we don't remove this, it will double up
+                    #    # though with this, '\n' becomes just 'n'...
+                    #    # and using `word in ['\'','"']` again leads to double escape characters...
+                    #    word.pop()
                     logging.debug("appending '%s' to value", char)
                     word.append(char)
 
