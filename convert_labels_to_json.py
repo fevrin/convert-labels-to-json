@@ -17,14 +17,6 @@ def convert_to_json(data):
         A JSON string representing the converted data.
     """
 
-    if data == '-':
-      # Read lines from standard input
-      lines = sys.stdin.readlines()
-    else:
-      # Open file in read mode (code remains the same)
-      with open(data, 'r') as f:
-        lines = f.readlines()
-
     result = []
     special_chars = ['\'','"','\\','=','\n']
     error_list = []
@@ -121,12 +113,15 @@ if __name__ == "__main__":
     # Get filename from command line argument (optional)
     if len(sys.argv) > 1:
       data = sys.argv[1]
+      # Open file in read mode (code remains the same)
+      with open(data, 'r') as f:
+        lines = f.readlines()
     else:
-      # Use standard input (default)
-      data = '-'
+      # Read lines from standard input
+      lines = sys.stdin.readlines()
 
     # Convert lines to JSON string
-    json_data = convert_to_json(data)
+    json_data = convert_to_json(lines)
 
     # Print the JSON string
     logging.debug("error_list = '%s'", json.dumps(json_data, indent=4))
