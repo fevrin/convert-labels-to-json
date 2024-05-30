@@ -6,6 +6,7 @@ import re
 import sys
 from collections import deque
 
+
 def convert_to_json(data):
     """
     Converts a list of lines with multiple key-value pairs to a JSON string.
@@ -18,7 +19,7 @@ def convert_to_json(data):
     """
 
     result = []
-    special_chars = ['\'','"','\\','=','\n']
+    special_chars = ["'", '"', "\\", "=", "\n"]
     error_list = []
     key_values = {}
     error_summary = ""
@@ -52,8 +53,8 @@ def convert_to_json(data):
 
 
             if key == "":
-                if char == '=':
-                    key = ''.join(word)
+                if char == "=":
+                    key = "".join(word)
                     word = []
                     logging.info("key = '%s'", key)
                     continue
@@ -61,19 +62,20 @@ def convert_to_json(data):
                     logging.debug("appending '%s' to key", char)
                     word.append(char)
             else:
-                if char in ['\'','"'] and not quote_char:
+                if char in ["'", '"'] and not quote_char:
                     # make note of the quote character and the fact that we're within quotes
                     quote_char = char
                     in_quoted_value = True
                     logging.debug("quote_char = %s", quote_char)
                     logging.debug("in_quoted_value = '%s'", in_quoted_value)
                     continue
-                if (quote_char and char == quote_char and word[-1] != '\\') \
-                   or (not quote_char and char == ' '):
+                if (quote_char and char == quote_char and word[-1] != "\\") or (
+                    not quote_char and char == " "
+                ):
                     # we're at the end of the value, either:
                     # * we're within quotes and are now exiting those
                     # * the value wasn't quoted, and we're now at the end of the unquoted value
-                    value = ''.join(word)
+                    value = "".join(word)
                     logging.info("word[-1] = %s", word[-1])
                     logging.info("value = '%s'", value)
 
@@ -87,7 +89,7 @@ def convert_to_json(data):
                     quote_char = None
                     word = []
 
-                    if char != ' ':
+                    if char != " ":
                         # if the current character isn't a space (e.g., it's a quote), don't
                         # include the following character (should be a space) in the value
                         skip_next_char = True
@@ -108,17 +110,17 @@ def convert_to_json(data):
     return error_list
 
 if __name__ == "__main__":
-    logging.basicConfig(stream=sys.stderr, level=logging.CRITICAL, style='{')
+    logging.basicConfig(stream=sys.stderr, level=logging.CRITICAL, style="{")
 
     # Get filename from command line argument (optional)
     if len(sys.argv) > 1:
-      data = sys.argv[1]
-      # Open file in read mode (code remains the same)
-      with open(data, 'r') as f:
-        lines = f.readlines()
+        data = sys.argv[1]
+        # Open file in read mode (code remains the same)
+        with open(data, "r") as f:
+            lines = f.readlines()
     else:
-      # Read lines from standard input
-      lines = sys.stdin.readlines()
+        # Read lines from standard input
+        lines = sys.stdin.readlines()
 
     # Convert lines to JSON string
     json_data = convert_to_json(lines)
