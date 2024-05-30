@@ -23,4 +23,8 @@ jobs:
         uses: pre-commit/action@v3.0.1
         # watch out for <https://github.com/pre-commit/action/issues/169>
         with:
-          extra_args: --verbose
+          extra_args: >
+            --verbose
+            --show-diff-on-failure
+            --color=always
+            --all-files
