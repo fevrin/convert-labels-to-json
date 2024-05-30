@@ -115,7 +115,7 @@ pre-commit: pre-commit-install ## Linting: Lints all files changed between the d
 	-@echo $(shell echo '$@' | tr '[:lower:]' '[:upper:]')
 	-@echo '=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-='
 	-@echo
-	-pipenv run pre-commit run -v --show-diff-on-failure --color=always --all-files
+	-pipenv run pre-commit run --verbose --show-diff-on-failure --color=always --all-files
 
 .PHONY: act # runs nektos/act
 act:
