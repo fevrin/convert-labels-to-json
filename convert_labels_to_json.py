@@ -131,6 +131,7 @@ def convert_to_json(data):
                     word.append(char)
             else:
                 if char in ['\'','"'] and not quote_char:
+                    # make note of the quote character and the fact that we're within quotes
                     quote_char = char
                     in_quoted_value = True
                     logging.debug("quote_char = %s", quote_char)
@@ -138,6 +139,9 @@ def convert_to_json(data):
                     continue
                 if (quote_char and char == quote_char and word[-1] != '\\') \
                    or (not quote_char and char == ' '):
+                    # we're at the end of the value, either:
+                    # * we're within quotes and are now exiting those
+                    # * the value wasn't quoted, and we're now at the end of the unquoted value
                     value = ''.join(word)
                     logging.info("word[-1] = %s", word[-1])
                     logging.info("value = '%s'", value)
@@ -153,6 +157,8 @@ def convert_to_json(data):
                     word = []
 
                     if char != ' ':
+                        # if the current character isn't a space (e.g., it's a quote), don't
+                        # include the following character (should be a space) in the value
                         skip_next_char = True
 
                     logging.debug("skip_next_char = '%s'", skip_next_char)
