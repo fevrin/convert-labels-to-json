@@ -110,7 +110,7 @@ def convert_to_json(data):
 
 
 if __name__ == "__main__":
-    logging.basicConfig(stream=sys.stderr, level=logging.CRITICAL, style="{")
+    logging.basicConfig(stream=sys.stderr, level=logging.DEBUG, style="{", format='[line {lineno}] {message}', datefmt='%Y-%m-%d:%H:%M:%S')
 
     # Get filename from command line argument (optional)
     if len(sys.argv) > 1:
