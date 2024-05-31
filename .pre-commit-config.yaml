@@ -81,3 +81,4 @@ repos:
       - id: yamllint
         args:
           - --strict
+          - --config-file=ci/config/.yamllint.yaml
