@@ -65,6 +65,8 @@ repos:
     rev: 7.0.0
     hooks:
       - id: flake8
+        args:
+          - --config=ci/config/.flake8
 #  - repo: https://github.com/streetsidesoftware/cspell-cli
 #    rev: v6.0.0
 #    hooks:
