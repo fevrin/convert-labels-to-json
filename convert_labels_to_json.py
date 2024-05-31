@@ -26,6 +26,8 @@ def convert_to_json(data):
         skip_next_char = False
         quote_char = None
 
+        line_length = len(line)
+
         word = []
         key = ""
         value = ""
@@ -33,7 +35,7 @@ def convert_to_json(data):
             error_summary = line
             continue
 
-        for char in line:
+        for index, char in enumerate(line):
             if skip_next_char is True:
                 logging.info("skipping char '{0}'".format(char))
                 skip_next_char = False
@@ -58,11 +60,15 @@ def convert_to_json(data):
                     logging.debug("in_quoted_value = '%s'", in_quoted_value)
                     continue
                 if (quote_char and char == quote_char and word[-1] != "\\") or (
-                    not quote_char and char == " "
+                    not quote_char and (char == " " or index == (line_length - 1))
                 ):
                     # we're at the end of the value, either:
                     # * we're within quotes and are now exiting those
                     # * the value wasn't quoted, and we're now at the end of the unquoted value
+                    if index == (line_length - 1):
+                        logging.debug("appending '%s' to value", char)
+                        word.append(char)
+
                     value = "".join(word)
                     logging.info("word[-1] = %s", word[-1])
                     logging.info("value = '%s'", value)
