@@ -38,7 +38,7 @@ def convert_to_json(data):
             continue
 
         for index, char in enumerate(line):
-            logging.debug("index = '%s', char = '%s'", index ,char)
+            logging.debug("index = '%s', char = '%s'", index, char)
             if skip_next_char is True:
                 logging.info("skipping char '{0}'".format(char))
                 skip_next_char = False
@@ -110,7 +110,13 @@ def convert_to_json(data):
 
 
 if __name__ == "__main__":
-    logging.basicConfig(stream=sys.stderr, level=logging.DEBUG, style="{", format='[line {lineno}] {message}', datefmt='%Y-%m-%d:%H:%M:%S')
+    logging.basicConfig(
+        datefmt="%Y-%m-%d:%H:%M:%S",
+        format="[line {lineno}] {message}",
+        level=logging.DEBUG,
+        stream=sys.stderr,
+        style="{",
+    )
 
     # Get filename from command line argument (optional)
     if len(sys.argv) > 1:
