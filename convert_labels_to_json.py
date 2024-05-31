@@ -4,68 +4,7 @@ import json
 import logging
 import re
 import sys
-from collections import deque
 
-def convert_to_json_orig(data):
-    """
-    Converts a list of lines with multiple key-value pairs to a JSON string.
-
-    Args:
-        data: A list of strings, where each string represents a line with key-value pairs.
-
-    Returns:
-        A JSON string representing the converted data.
-    """
-
-    if data == '-':
-      # Read lines from standard input
-      lines = sys.stdin.readlines()
-    else:
-      # Open file in read mode (code remains the same)
-      with open(data, 'r') as f:
-        lines = f.readlines()
-
-    result = []
-    for line in lines:
-        line_dict = {}
-        current_key = None
-        current_value = deque()  # Use deque for handling quoted values
-        in_quoted_value = False
-
-        for token in line.strip().split():
-            print(f"token = '{token}'")
-
-            if "=" in token:
-                # Split key-value pair
-                key, value = token.split("=", 1)
-                current_key = key.strip()  # Preserve potential leading/trailing spaces in key
-                # Clear current value if a new key is encountered
-                current_value.clear()
-                in_quoted_value = False
-            else:
-                # Handle quoted values
-                if token.startswith('"'):
-                    in_quoted_value = True
-                    current_value.append(token[1:])  # Add first part without quotes
-                elif token.endswith('"'):
-                    in_quoted_value = False
-                    current_value.append(token[:-1])  # Add last part without quotes
-                else:
-                    # Handle non-quoted values or continuation within quotes
-                    if in_quoted_value:
-                        current_value.append(token)
-                    else:
-                        current_value.append(token.strip())  # Handle leading spaces outside quotes
-
-            # Add complete key-value pair to dictionary
-            if current_key and current_value:
-                line_dict[current_key] = " ".join(current_value)
-
-        if current_key and current_value:
-            # Add the last key-value pair if any
-            line_dict[current_key] = " ".join(current_value)
-        result.append(line_dict)
-    return json.dumps(result, indent=4)
 
 def convert_to_json(data):
     """
@@ -78,27 +17,18 @@ def convert_to_json(data):
         A JSON string representing the converted data.
     """
 
-    if data == '-':
-      # Read lines from standard input
-      lines = sys.stdin.readlines()
-    else:
-      # Open file in read mode (code remains the same)
-      with open(data, 'r') as f:
-        lines = f.readlines()
-
-    result = []
-    special_chars = ['\'','"','\\','=','\n']
     error_list = []
     key_values = {}
     error_summary = ""
     for line in lines:
         line = line.strip()
-        line_dict = {}
-        current_key = None
-        current_value = deque()  # Use deque for handling quoted values
         in_quoted_value = False
         skip_next_char = False
         quote_char = None
+
+        line_length = len(line)
+        logging.debug("line = '%s'", line)
+        logging.debug("line_length = '%s'", line_length)
 
         word = []
         key = ""
@@ -107,22 +37,17 @@ def convert_to_json(data):
             error_summary = line
             continue
 
-        for char in line:
-#            print(f"char = '{char}'")
+        for index, char in enumerate(line):
+            logging.debug("index = '%s', char = '%s'", index, char)
             if skip_next_char is True:
                 logging.info("skipping char '{0}'".format(char))
                 skip_next_char = False
                 logging.info("skip_next_char = '{0}'".format(skip_next_char))
                 continue
 
-#            if char in special_chars:
-#                print(f"special char = '{char}'")
-#                print(f"key = '{type(key)}'")
-
-
             if key == "":
-                if char == '=':
-                    key = ''.join(word)
+                if char == "=":
+                    key = "".join(word)
                     word = []
                     logging.info("key = '%s'", key)
                     continue
@@ -130,15 +55,24 @@ def convert_to_json(data):
                     logging.debug("appending '%s' to key", char)
                     word.append(char)
             else:
-                if char in ['\'','"'] and not quote_char:
+                if char in ["'", '"'] and not quote_char:
+                    # make note of the quote character and the fact that we're within quotes
                     quote_char = char
                     in_quoted_value = True
                     logging.debug("quote_char = %s", quote_char)
                     logging.debug("in_quoted_value = '%s'", in_quoted_value)
                     continue
-                if (quote_char and char == quote_char and word[-1] != '\\') \
-                   or (not quote_char and char == ' '):
-                    value = ''.join(word)
+                if (quote_char and char == quote_char and word[-1] != "\\") or (
+                    not quote_char and (char == " " or index == (line_length - 1))
+                ):
+                    # we're at the end of the value, either:
+                    # * we're within quotes and are now exiting those
+                    # * the value wasn't quoted, and we're now at the end of the unquoted value
+                    if index == (line_length - 1):
+                        logging.debug("appending '%s' to value", char)
+                        word.append(char)
+
+                    value = "".join(word)
                     logging.info("word[-1] = %s", word[-1])
                     logging.info("value = '%s'", value)
 
@@ -152,40 +86,51 @@ def convert_to_json(data):
                     quote_char = None
                     word = []
 
-                    if char != ' ':
+                    if char != " ":
+                        # if the current character isn't a space (e.g., it's a quote), don't
+                        # include the following character (should be a space) in the value
                         skip_next_char = True
 
                     logging.debug("skip_next_char = '%s'", skip_next_char)
                     logging.info("\n")
                 else:
-                    if word and word[-1] == '\\':
-                        # json.dumps will automatically escape escape characters
-                        # if we don't remove this, it will double up
-                        word.pop()
                     logging.debug("appending '%s' to value", char)
                     word.append(char)
 
         error_list.append(key_values)
+        logging.debug("key_values = '%s'", key_values)
         key_values = {}
 
+        logging.info("\n\n")
         logging.info("found all keys and values on line; moving to next line")
         logging.info("\n\n")
 
     error_list.append({"error summary": error_summary})
-    print(f"error_list = '{json.dumps(error_list, indent=4)}'")
+    return error_list
+
 
 if __name__ == "__main__":
-    logging.basicConfig(stream=sys.stderr, level=logging.DEBUG, style='{')
+    logging.basicConfig(
+        datefmt="%Y-%m-%d:%H:%M:%S",
+        format="[line {lineno}] {message}",
+        level=logging.DEBUG,
+        stream=sys.stderr,
+        style="{",
+    )
 
     # Get filename from command line argument (optional)
     if len(sys.argv) > 1:
-      data = sys.argv[1]
+        data = sys.argv[1]
+        # Open file in read mode (code remains the same)
+        with open(data, "r") as f:
+            lines = f.readlines()
     else:
-      # Use standard input (default)
-      data = '-'
+        # Read lines from standard input
+        lines = sys.stdin.readlines()
 
     # Convert lines to JSON string
-    json_data = convert_to_json(data)
+    json_data = convert_to_json(lines)
 
     # Print the JSON string
-    print(json_data)
+    logging.debug("error_list = '%s'", json.dumps(json_data, indent=4))
+    print(json.dumps(json_data, indent=4))
