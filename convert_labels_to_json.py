@@ -27,6 +27,8 @@ def convert_to_json(data):
         quote_char = None
 
         line_length = len(line)
+        logging.debug("line = '%s'", line)
+        logging.debug("line_length = '%s'", line_length)
 
         word = []
         key = ""
@@ -36,6 +38,7 @@ def convert_to_json(data):
             continue
 
         for index, char in enumerate(line):
+            logging.debug("index = '%s', char = '%s'", index ,char)
             if skip_next_char is True:
                 logging.info("skipping char '{0}'".format(char))
                 skip_next_char = False
@@ -95,8 +98,10 @@ def convert_to_json(data):
                     word.append(char)
 
         error_list.append(key_values)
+        logging.debug("key_values = '%s'", key_values)
         key_values = {}
 
+        logging.info("\n\n")
         logging.info("found all keys and values on line; moving to next line")
         logging.info("\n\n")
 
